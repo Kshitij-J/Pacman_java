@@ -4,9 +4,10 @@ import java.util.HashSet;
 import java.util.Random;
 import javax.swing.*;
 
-
-public class PacMan extends JPanel
+// implementing so we have to use ActionListener and KeyListener
+public class PacMan extends JPanel implements ActionListener, KeyListener
 {
+
     class Block
     { // each block (basically a tile) in the game
         int x, y;
@@ -14,6 +15,10 @@ public class PacMan extends JPanel
         Image image;
 
         int startX, startY; // storing start positions
+
+        char direction = 'U'; // U D L R 
+        int velocityX = 0;
+        int velocityY = 0;
 
         Block(Image image, int x, int y, int width, int height){
             this.image = image;
@@ -23,6 +28,61 @@ public class PacMan extends JPanel
             this.height = height;
             this.startX = x;
             this.startY = y;
+        }
+
+        void updateDirection(char direction)
+        {
+            char prevDirection = this.direction; // store the previous direction
+            this.direction = direction; // update the direction of the block
+            updateVelocity(); // update the velocity based on the direction
+            this.x += this.velocityX; // update the x position based on the velocity
+            this.y += this.velocityY; // update the y position based on the velocity
+            for (Block wall : walls) // check for collision with walls
+            {
+                if (collision(this, wall)) {
+                    this.x -= this.velocityX; // revert the position
+                    this.y -= this.velocityY; // revert the position
+                    this.direction = prevDirection; // revert the direction
+                    updateVelocity(); // update the velocity based on the previous direction
+                }
+            }
+            // for (Block ghost : ghosts) // check for collision with ghosts
+            // {
+            //     if (collision(this, ghost)) {
+            //         this.x -= this.velocityX; // revert the position
+            //         this.y -= this.velocityY; // revert the position
+            //         this.direction = prevDirection; // revert the direction
+            //         updateVelocity(); // update the velocity based on the previous direction
+            //     }
+            // }
+        }
+
+        void updateVelocity() // for movement
+        {
+            switch (this.direction) {
+                case 'U':
+                    this.velocityX = 0;
+                    this.velocityY = -tileSize / 4;
+                    break;
+                case 'D':
+                    this.velocityX = 0;
+                    this.velocityY = tileSize / 4;
+                    break;
+                case 'L':
+                    this.velocityX = -tileSize / 4;
+                    this.velocityY = 0;
+                    break;
+                case 'R':
+                    this.velocityX = tileSize / 4;
+                    this.velocityY = 0;
+                    break;
+            }
+        }
+
+        void reset()
+        {
+            this.x = startX; // reset the x position to the start position
+            this.y = startY; // reset the y position to the start position
         }
     }
 
@@ -73,11 +133,21 @@ public class PacMan extends JPanel
     HashSet<Block> ghosts;
     HashSet<Block> foods;
     Block pacman;
+    
+    Timer gameLoop; // timer for the game loop
+    char[] directions = {'U', 'D', 'L', 'R'}; // possible directions for the ghosts
+    Random random = new Random(); // random number generator for ghost movement
+    int score = 0;
+    int lives = 3; // number of lives for pacman
+    boolean gameOver = false; // game over flag
 
     PacMan()
     {
         setPreferredSize(new Dimension(boardWidth, boardHeight)); // same size as the frame
         setBackground(Color.BLACK); // background color
+        addKeyListener(this); // add key listener to the panel
+        setFocusable(true); // make the panel focusable 
+
         // load images
         wallImage = new ImageIcon(getClass().getResource("resources/wall.png")).getImage();
         blueGhostImage = new ImageIcon(getClass().getResource("resources/blueGhost.png")).getImage();
@@ -92,7 +162,14 @@ public class PacMan extends JPanel
 
         loadMap(); // load the map
 
+        for(Block ghost : ghosts) // set random direction for each ghost
+        {
+            char newDirection = directions[random.nextInt(4)];
+            ghost.updateDirection(newDirection); // update the direction of the ghost
+        }
 
+        gameLoop = new Timer(50, this); // 20fps (1000/50)
+        gameLoop.start(); // start the game loop
     }
 
     public void loadMap()
@@ -169,5 +246,153 @@ public class PacMan extends JPanel
             g.setColor(Color.WHITE); // color of the food
             g.fillOval(food.x, food.y, food.width, food.height); // draw the food
         }
+
+        //score
+        g.setFont(new Font("Arial", Font.PLAIN, 18)); // set font for the score
+        if (gameOver){
+            g.drawString("Game Over " + String.valueOf(score), tileSize/2, tileSize/2); // draw game over message
+        }
+        else {
+            g.drawString("x: " + String.valueOf(lives) + " Score: " + String.valueOf(score), tileSize / 2, tileSize / 2); // draw the score
+        }
     }
+
+    // method to update the position of pacman and ghosts
+    public void move()
+    {
+        pacman.x += pacman.velocityX;
+        pacman.y += pacman.velocityY;
+
+        // check for collision with walls
+        for (Block wall : walls) 
+        {
+            if (collision(pacman, wall)) {
+                pacman.x -= pacman.velocityX; // revert the position
+                pacman.y -= pacman.velocityY; // revert the position
+                break; // exit the loop if collision is detected
+            }
+        }
+
+        for(Block ghost : ghosts) // move the ghosts
+        {
+            if(collision(ghost, pacman))
+            {
+                lives -= 1; // decrease the lives of pacman
+                if(lives == 0) // if lives are 0, game over
+                {
+                    gameOver = true; // set game over flag
+                    return;
+                }
+                resetPositions(); // reset the positions of pacman and ghosts
+
+            }
+            if(ghost.y == tileSize * 9 && ghost.direction != 'U' && ghost.direction != 'D') // if the ghost is at the center of the map, set a random direction
+            {
+               ghost.updateDirection('U');
+            }
+
+            ghost.x += ghost.velocityX;
+            ghost.y += ghost.velocityY;
+
+            // check for collision with walls
+            for (Block wall : walls) {
+                if (collision(ghost, wall) || ghost.x < 0 || ghost.x + ghost.width >= boardWidth) {
+                    ghost.x -= ghost.velocityX; // revert the position
+                    ghost.y -= ghost.velocityY; // revert the position
+                    char newDirection = directions[random.nextInt(4)]; // set a new random direction
+                    ghost.updateDirection(newDirection); // update the direction of the ghost
+                }
+            }
+        }
+
+        // check for collision with food
+        Block foodEaten = null;
+        for (Block food : foods) {
+            if (collision(pacman, food)) {
+                foodEaten = food; // store the food that is eaten
+                score += 10; // increase the score
+                break; // exit the loop if collision is detected
+            }
+        }
+        foods.remove(foodEaten); // remove the food from the set
+
+        if (foods.isEmpty()) // if all food is eaten
+        {
+            loadMap();
+            resetPositions(); // reset the positions of pacman and ghosts
+        }
+    }
+
+    public boolean collision(Block a, Block b)
+    {   
+        return a.x < b.x + b.width && 
+               a.x + a.width > b.x && 
+               a.y < b.y + b.height && 
+               a.y + a.height > b.y; // check for collision between two blocks
+    }
+
+    public void resetPositions()
+    {
+        pacman.reset(); // reset the position of pacman
+        pacman.velocityX = 0; // reset the velocity of pacman
+        pacman.velocityY = 0; // reset the velocity of pacman
+
+        for(Block ghost : ghosts) // reset the position of ghosts
+        {
+            ghost.reset(); // reset the position of the ghost
+            char newDirection = directions[random.nextInt(4)]; // set a new random direction
+            ghost.updateDirection(newDirection); // update the direction of the ghost
+        }
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        move(); // move pacman
+        repaint(); // repaint the panel to update the graphics
+        if(gameOver) // if game is over, stop the game loop
+        {
+            gameLoop.stop(); // stop the game loop
+        }
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+    }
+
+    // key pressed event for pacman movement
+    @Override
+    public void keyReleased(KeyEvent e) {
+        if (gameOver)
+        {
+            loadMap(); // reload the map
+            resetPositions(); // reset the positions of pacman and ghosts
+            lives = 3;
+            score = 0;
+            gameOver = false; // reset the game over flag
+            gameLoop.start(); // start the game loop again
+        }
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_UP:
+                pacman.updateDirection('U');
+                pacman.image = pacmanUpImage;
+                break;
+            case KeyEvent.VK_DOWN:
+                pacman.updateDirection('D');
+                pacman.image = pacmanDownImage;
+                break;
+            case KeyEvent.VK_LEFT:
+                pacman.updateDirection('L');
+                pacman.image = pacmanLeftImage;
+                break;
+            case KeyEvent.VK_RIGHT:
+                pacman.updateDirection('R');
+                pacman.image = pacmanRightImage;
+                break;
+        }
+    }
+
 }

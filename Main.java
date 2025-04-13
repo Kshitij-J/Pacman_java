@@ -2,7 +2,6 @@ import javax.swing.JFrame;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello, World!");
 
         int rowcount = 21;
         int columncount = 19;
@@ -21,8 +20,7 @@ public class Main {
         PacMan pacmanGame = new PacMan(); // create an instance of the PacMan class
         frame.add(pacmanGame); // add the PacMan instance to the frame
         frame.pack(); // pack the frame to fit the components
+        pacmanGame.requestFocus(); // request focus for the PacMan instance to receive key events
         frame.setVisible(true); // make the frame visible again after packing
     }
-
-
 }
