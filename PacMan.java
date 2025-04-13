@@ -4,23 +4,24 @@ import java.util.HashSet;
 import java.util.Random;
 import javax.swing.*;
 
-// implementing so we have to use ActionListener and KeyListener
-public class PacMan extends JPanel implements ActionListener, KeyListener
-{
-
-    class Block
-    { // each block (basically a tile) in the game
-        int x, y;
-        int width, height;
+public class PacMan extends JPanel implements ActionListener, KeyListener {
+    // to store the next direction
+    private char nextDirection = ' ';
+    
+    class Block {
+        int x;
+        int y;
+        int width;
+        int height;
         Image image;
 
-        int startX, startY; // storing start positions
-
-        char direction = 'U'; // U D L R 
+        int startX;
+        int startY;
+        char direction = 'U'; // U D L R
         int velocityX = 0;
         int velocityY = 0;
 
-        Block(Image image, int x, int y, int width, int height){
+        Block(Image image, int x, int y, int width, int height) {
             this.image = image;
             this.x = x;
             this.y = y;
@@ -30,67 +31,53 @@ public class PacMan extends JPanel implements ActionListener, KeyListener
             this.startY = y;
         }
 
-        void updateDirection(char direction)
-        {
-            char prevDirection = this.direction; // store the previous direction
-            this.direction = direction; // update the direction of the block
-            updateVelocity(); // update the velocity based on the direction
-            this.x += this.velocityX; // update the x position based on the velocity
-            this.y += this.velocityY; // update the y position based on the velocity
-            for (Block wall : walls) // check for collision with walls
-            {
+        void updateDirection(char direction) {
+            char prevDirection = this.direction;
+            this.direction = direction;
+            updateVelocity();
+            this.x += this.velocityX;
+            this.y += this.velocityY;
+            for (Block wall : walls) {
                 if (collision(this, wall)) {
-                    this.x -= this.velocityX; // revert the position
-                    this.y -= this.velocityY; // revert the position
-                    this.direction = prevDirection; // revert the direction
-                    updateVelocity(); // update the velocity based on the previous direction
+                    this.x -= this.velocityX;
+                    this.y -= this.velocityY;
+                    this.direction = prevDirection;
+                    updateVelocity();
                 }
             }
-            // for (Block ghost : ghosts) // check for collision with ghosts
-            // {
-            //     if (collision(this, ghost)) {
-            //         this.x -= this.velocityX; // revert the position
-            //         this.y -= this.velocityY; // revert the position
-            //         this.direction = prevDirection; // revert the direction
-            //         updateVelocity(); // update the velocity based on the previous direction
-            //     }
-            // }
         }
 
-        void updateVelocity() // for movement
-        {
-            switch (this.direction) {
-                case 'U':
-                    this.velocityX = 0;
-                    this.velocityY = -tileSize / 4;
-                    break;
-                case 'D':
-                    this.velocityX = 0;
-                    this.velocityY = tileSize / 4;
-                    break;
-                case 'L':
-                    this.velocityX = -tileSize / 4;
-                    this.velocityY = 0;
-                    break;
-                case 'R':
-                    this.velocityX = tileSize / 4;
-                    this.velocityY = 0;
-                    break;
+        void updateVelocity() {
+            if (this.direction == 'U') {
+                this.velocityX = 0;
+                this.velocityY = -tileSize/4;
+            }
+            else if (this.direction == 'D') {
+                this.velocityX = 0;
+                this.velocityY = tileSize/4;
+            }
+            else if (this.direction == 'L') {
+                this.velocityX = -tileSize/4;
+                this.velocityY = 0;
+            }
+            else if (this.direction == 'R') {
+                this.velocityX = tileSize/4;
+                this.velocityY = 0;
             }
         }
 
-        void reset()
-        {
-            this.x = startX; // reset the x position to the start position
-            this.y = startY; // reset the y position to the start position
+        void reset() {
+            this.x = this.startX;
+            this.y = this.startY;
         }
     }
 
-    private int rowcount = 21;
-    private int columncount = 19;
+    
+    private int rowCount = 21;
+    private int columnCount = 19;
     private int tileSize = 32;
-    private int boardWidth = columncount * tileSize;
-    private int boardHeight = rowcount * tileSize;
+    private int boardWidth = columnCount * tileSize;
+    private int boardHeight = rowCount * tileSize;
 
     private Image wallImage;
     private Image blueGhostImage;
@@ -103,7 +90,6 @@ public class PacMan extends JPanel implements ActionListener, KeyListener
     private Image pacmanLeftImage;
     private Image pacmanRightImage;
 
-    // making Map
     //X = wall, O = skip, P = pac man, ' ' = food
     //Ghosts: b = blue, o = orange, p = pink, r = red
     private String[] tileMap = {
@@ -129,26 +115,26 @@ public class PacMan extends JPanel implements ActionListener, KeyListener
         "X                 X",
         "XXXXXXXXXXXXXXXXXXX" 
     };
+
     HashSet<Block> walls;
-    HashSet<Block> ghosts;
     HashSet<Block> foods;
+    HashSet<Block> ghosts;
     Block pacman;
-    
-    Timer gameLoop; // timer for the game loop
-    char[] directions = {'U', 'D', 'L', 'R'}; // possible directions for the ghosts
-    Random random = new Random(); // random number generator for ghost movement
+
+    Timer gameLoop;
+    char[] directions = {'U', 'D', 'L', 'R'}; //up down left right
+    Random random = new Random();
     int score = 0;
-    int lives = 3; // number of lives for pacman
-    boolean gameOver = false; // game over flag
+    int lives = 3;
+    boolean gameOver = false;
 
-    PacMan()
-    {
-        setPreferredSize(new Dimension(boardWidth, boardHeight)); // same size as the frame
-        setBackground(Color.BLACK); // background color
-        addKeyListener(this); // add key listener to the panel
-        setFocusable(true); // make the panel focusable 
+    PacMan() {
+        setPreferredSize(new Dimension(boardWidth, boardHeight));
+        setBackground(Color.BLACK);
+        addKeyListener(this);
+        setFocusable(true);
 
-        // load images
+        //load images
         wallImage = new ImageIcon(getClass().getResource("resources/wall.png")).getImage();
         blueGhostImage = new ImageIcon(getClass().getResource("resources/blueGhost.png")).getImage();
         orangeGhostImage = new ImageIcon(getClass().getResource("resources/orangeGhost.png")).getImage();
@@ -160,45 +146,37 @@ public class PacMan extends JPanel implements ActionListener, KeyListener
         pacmanLeftImage = new ImageIcon(getClass().getResource("resources/pacmanLeft.png")).getImage();
         pacmanRightImage = new ImageIcon(getClass().getResource("resources/pacmanRight.png")).getImage();
 
-        loadMap(); // load the map
-
-        for(Block ghost : ghosts) // set random direction for each ghost
-        {
+        loadMap();
+        for (Block ghost : ghosts) {
             char newDirection = directions[random.nextInt(4)];
-            ghost.updateDirection(newDirection); // update the direction of the ghost
+            ghost.updateDirection(newDirection);
         }
+        //how long it takes to start timer, milliseconds gone between frames
+        gameLoop = new Timer(50, this); //20fps (1000/50)
+        gameLoop.start();
 
-        gameLoop = new Timer(50, this); // 20fps (1000/50)
-        gameLoop.start(); // start the game loop
     }
 
-    public void loadMap()
-    {
-        //initialziton of  the hashsets
+    public void loadMap() {
         walls = new HashSet<Block>();
-        ghosts = new HashSet<Block>();
         foods = new HashSet<Block>();
-        //loop through the map and create blocks for each tile
-        for(int r = 0; r < rowcount; r++)
-        {
-            for(int c = 0; c < columncount; c++)
-            {
+        ghosts = new HashSet<Block>();
+
+        for (int r = 0; r < rowCount; r++) {
+            for (int c = 0; c < columnCount; c++) {
                 String row = tileMap[r];
                 char tileMapChar = row.charAt(c);
 
-                // left corner of the tile
-                int x = c * tileSize; // x position of the tile
-                int y = r * tileSize; // y position of the tile
+                int x = c*tileSize;
+                int y = r*tileSize;
 
-                if(tileMapChar == 'X')
-                {
+                if (tileMapChar == 'X') { //block wall
                     Block wall = new Block(wallImage, x, y, tileSize, tileSize);
-                    walls.add(wall); // add wall to the set
+                    walls.add(wall);
                 }
-                else if (tileMapChar == 'b')
-                {
+                else if (tileMapChar == 'b') { //blue ghost
                     Block ghost = new Block(blueGhostImage, x, y, tileSize, tileSize);
-                    ghosts.add(ghost); // ablue ghost
+                    ghosts.add(ghost);
                 }
                 else if (tileMapChar == 'o') { //orange ghost
                     Block ghost = new Block(orangeGhostImage, x, y, tileSize, tileSize);
@@ -215,7 +193,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener
                 else if (tileMapChar == 'P') { //pacman
                     pacman = new Block(pacmanRightImage, x, y, tileSize, tileSize);
                 }
-                else if (tileMapChar == ' ') { //food, 14 because center of the tile
+                else if (tileMapChar == ' ') { //food
                     Block food = new Block(null, x + 14, y + 14, 4, 4);
                     foods.add(food);
                 }
@@ -223,176 +201,204 @@ public class PacMan extends JPanel implements ActionListener, KeyListener
         }
     }
 
-    public void paintComponent(Graphics g)
-    {
+    public void paintComponent(Graphics g) {
         super.paintComponent(g);
         draw(g);
     }
 
-    public void draw(Graphics g)
-    {
-        g.drawImage(pacman.image, pacman.x, pacman.y, pacman.width, pacman.height, null); // draw the pacman
+    public void draw(Graphics g) {
+        g.drawImage(pacman.image, pacman.x, pacman.y, pacman.width, pacman.height, null);
 
-        for(Block ghost : ghosts) // draw the ghosts
-        {
+        for (Block ghost : ghosts) {
             g.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height, null);
         }
-        for(Block wall : walls) // draw the walls
-        {
+
+        for (Block wall : walls) {
             g.drawImage(wall.image, wall.x, wall.y, wall.width, wall.height, null);
         }
-        for(Block food : foods) // draw the food
-        {
-            g.setColor(Color.WHITE); // color of the food
-            g.fillOval(food.x, food.y, food.width, food.height); // draw the food
-        }
 
+        g.setColor(Color.WHITE);
+        for (Block food : foods) {
+            g.fillRect(food.x, food.y, food.width, food.height);
+        }
         //score
-        g.setFont(new Font("Arial", Font.PLAIN, 18)); // set font for the score
-        if (gameOver){
-            g.drawString("Game Over " + String.valueOf(score), tileSize/2, tileSize/2); // draw game over message
+        g.setFont(new Font("Arial", Font.PLAIN, 18));
+        if (gameOver) {
+            g.drawString("Game Over: " + String.valueOf(score), tileSize/2, tileSize/2);
         }
         else {
-            g.drawString("x: " + String.valueOf(lives) + " Score: " + String.valueOf(score), tileSize / 2, tileSize / 2); // draw the score
+            g.drawString("x" + String.valueOf(lives) + " Score: " + String.valueOf(score), tileSize/2, tileSize/2);
         }
     }
-
-    // method to update the position of pacman and ghosts
-    public void move()
-    {
+    // gpt: Optimized Movement
+    public void move() {
+        // Try to apply the queued direction change if there is one
+        if (nextDirection != ' ') {
+            // Store current position
+            int originalX = pacman.x;
+            int originalY = pacman.y;
+            
+            // Try changing to the requested direction
+            char originalDirection = pacman.direction;
+            pacman.direction = nextDirection;
+            pacman.updateVelocity();
+            
+            // Test if we can move in that direction from our current position
+            pacman.x += pacman.velocityX;
+            pacman.y += pacman.velocityY;
+            
+            boolean canTurn = true;
+            for (Block wall : walls) {
+                if (collision(pacman, wall)) {
+                    canTurn = false;
+                    break;
+                }
+            }
+            
+            // If we can't turn yet, revert but keep the next direction queued
+            if (!canTurn) {
+                pacman.x = originalX;
+                pacman.y = originalY;
+                pacman.direction = originalDirection;
+                pacman.updateVelocity();
+            } else {
+                // We successfully turned, so update the image and clear the queued direction
+                updatePacmanImage();
+                nextDirection = ' '; // Clear the queued direction
+                return; // We've already moved, so return
+            }
+        }
+        
+        // Continue moving in current direction
         pacman.x += pacman.velocityX;
         pacman.y += pacman.velocityY;
 
-        // check for collision with walls
-        for (Block wall : walls) 
-        {
+        //check wall collisions
+        for (Block wall : walls) {
             if (collision(pacman, wall)) {
-                pacman.x -= pacman.velocityX; // revert the position
-                pacman.y -= pacman.velocityY; // revert the position
-                break; // exit the loop if collision is detected
+                pacman.x -= pacman.velocityX;
+                pacman.y -= pacman.velocityY;
+                break;
             }
         }
 
-        for(Block ghost : ghosts) // move the ghosts
-        {
-            if(collision(ghost, pacman))
-            {
-                lives -= 1; // decrease the lives of pacman
-                if(lives == 0) // if lives are 0, game over
-                {
-                    gameOver = true; // set game over flag
+        //check ghost collisions
+        for (Block ghost : ghosts) {
+            if (collision(ghost, pacman)) {
+                lives -= 1;
+                if (lives == 0) {
+                    gameOver = true;
                     return;
                 }
-                resetPositions(); // reset the positions of pacman and ghosts
-
-            }
-            if(ghost.y == tileSize * 9 && ghost.direction != 'U' && ghost.direction != 'D') // if the ghost is at the center of the map, set a random direction
-            {
-               ghost.updateDirection('U');
+                resetPositions();
             }
 
+            if (ghost.y == tileSize*9 && ghost.direction != 'U' && ghost.direction != 'D') {
+                ghost.updateDirection('U');
+            }
             ghost.x += ghost.velocityX;
             ghost.y += ghost.velocityY;
-
-            // check for collision with walls
             for (Block wall : walls) {
-                if (collision(ghost, wall) || ghost.x < 0 || ghost.x + ghost.width >= boardWidth) {
-                    ghost.x -= ghost.velocityX; // revert the position
-                    ghost.y -= ghost.velocityY; // revert the position
-                    char newDirection = directions[random.nextInt(4)]; // set a new random direction
-                    ghost.updateDirection(newDirection); // update the direction of the ghost
+                if (collision(ghost, wall) || ghost.x <= 0 || ghost.x + ghost.width >= boardWidth) {
+                    ghost.x -= ghost.velocityX;
+                    ghost.y -= ghost.velocityY;
+                    char newDirection = directions[random.nextInt(4)];
+                    ghost.updateDirection(newDirection);
                 }
             }
         }
 
-        // check for collision with food
+        //check food collision
         Block foodEaten = null;
         for (Block food : foods) {
             if (collision(pacman, food)) {
-                foodEaten = food; // store the food that is eaten
-                score += 10; // increase the score
-                break; // exit the loop if collision is detected
+                foodEaten = food;
+                score += 10;
             }
         }
-        foods.remove(foodEaten); // remove the food from the set
+        foods.remove(foodEaten);
 
-        if (foods.isEmpty()) // if all food is eaten
-        {
+        if (foods.isEmpty()) {
             loadMap();
-            resetPositions(); // reset the positions of pacman and ghosts
+            resetPositions();
         }
     }
-
-    public boolean collision(Block a, Block b)
-    {   
-        return a.x < b.x + b.width && 
-               a.x + a.width > b.x && 
-               a.y < b.y + b.height && 
-               a.y + a.height > b.y; // check for collision between two blocks
+    // gpt
+    // Helper method to update Pacman's image based on direction
+    private void updatePacmanImage() {
+        if (pacman.direction == 'U') {
+            pacman.image = pacmanUpImage;
+        }
+        else if (pacman.direction == 'D') {
+            pacman.image = pacmanDownImage;
+        }
+        else if (pacman.direction == 'L') {
+            pacman.image = pacmanLeftImage;
+        }
+        else if (pacman.direction == 'R') {
+            pacman.image = pacmanRightImage;
+        }
+    }
+    public boolean collision(Block a, Block b) {
+        return  a.x < b.x + b.width &&
+                a.x + a.width > b.x &&
+                a.y < b.y + b.height &&
+                a.y + a.height > b.y;
     }
 
-    public void resetPositions()
-    {
-        pacman.reset(); // reset the position of pacman
-        pacman.velocityX = 0; // reset the velocity of pacman
-        pacman.velocityY = 0; // reset the velocity of pacman
 
-        for(Block ghost : ghosts) // reset the position of ghosts
-        {
-            ghost.reset(); // reset the position of the ghost
-            char newDirection = directions[random.nextInt(4)]; // set a new random direction
-            ghost.updateDirection(newDirection); // update the direction of the ghost
+    public void resetPositions() {
+        pacman.reset();
+        pacman.velocityX = 0;
+        pacman.velocityY = 0;
+        nextDirection = ' '; // Clear next direction when resetting
+        for (Block ghost : ghosts) {
+            ghost.reset();
+            char newDirection = directions[random.nextInt(4)];
+            ghost.updateDirection(newDirection);
         }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        move(); // move pacman
-        repaint(); // repaint the panel to update the graphics
-        if(gameOver) // if game is over, stop the game loop
-        {
-            gameLoop.stop(); // stop the game loop
+        move();
+        repaint();
+        if (gameOver) {
+            gameLoop.stop();
         }
     }
 
     @Override
-    public void keyTyped(KeyEvent e) {
-    }
+    public void keyTyped(KeyEvent e) {}
 
     @Override
     public void keyPressed(KeyEvent e) {
+        if (!gameOver) {
+            if (e.getKeyCode() == KeyEvent.VK_UP) {
+                nextDirection = 'U';
+            }
+            else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                nextDirection = 'D';
+            }
+            else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+                nextDirection = 'L';
+            }
+            else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                nextDirection = 'R';
+            }
+        }
     }
 
-    // key pressed event for pacman movement
     @Override
     public void keyReleased(KeyEvent e) {
-        if (gameOver)
-        {
-            loadMap(); // reload the map
-            resetPositions(); // reset the positions of pacman and ghosts
+        if (gameOver) {
+            loadMap();
+            resetPositions();
             lives = 3;
             score = 0;
-            gameOver = false; // reset the game over flag
-            gameLoop.start(); // start the game loop again
+            gameOver = false;
+            gameLoop.start();
         }
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_UP:
-                pacman.updateDirection('U');
-                pacman.image = pacmanUpImage;
-                break;
-            case KeyEvent.VK_DOWN:
-                pacman.updateDirection('D');
-                pacman.image = pacmanDownImage;
-                break;
-            case KeyEvent.VK_LEFT:
-                pacman.updateDirection('L');
-                pacman.image = pacmanLeftImage;
-                break;
-            case KeyEvent.VK_RIGHT:
-                pacman.updateDirection('R');
-                pacman.image = pacmanRightImage;
-                break;
-        }
+        // Direction changes are now handled in keyPressed
     }
-
 }
