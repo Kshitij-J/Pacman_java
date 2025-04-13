@@ -228,7 +228,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             g.drawString("Game Over: " + String.valueOf(score), tileSize/2, tileSize/2);
         }
         else {
-            g.drawString("x" + String.valueOf(lives) + " Score: " + String.valueOf(score), tileSize/2, tileSize/2);
+            g.drawString("Lives: " + String.valueOf(lives) + " Score: " + String.valueOf(score), tileSize/2, tileSize/2);
         }
     }
     // gpt: Optimized Movement

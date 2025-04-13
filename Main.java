@@ -1,5 +1,5 @@
-import javax.swing.JFrame;
-import game.PacMan; 
+import game.PacMan;
+import javax.swing.JFrame; 
 public class Main {
     public static void main(String[] args) {
 
