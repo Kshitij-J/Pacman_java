@@ -1,5 +1,5 @@
 import javax.swing.JFrame;
-import game.PacMan; // import the PacMan class from the game package
+import game.PacMan; 
 public class Main {
     public static void main(String[] args) {
 

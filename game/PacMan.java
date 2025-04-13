@@ -233,9 +233,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     }
     // gpt: Optimized Movement
     public void move() {
-        // Try to apply the queued direction change if there is one
         if (nextDirection != ' ') {
-            // Store current position
+            // current position
             int originalX = pacman.x;
             int originalY = pacman.y;
             
@@ -244,10 +243,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             pacman.direction = nextDirection;
             pacman.updateVelocity();
             
-            // Test if we can move in that direction from our current position
+            
             pacman.x += pacman.velocityX;
             pacman.y += pacman.velocityY;
-            
+            //checking if we can turn
             boolean canTurn = true;
             for (Block wall : walls) {
                 if (collision(pacman, wall)) {
@@ -256,24 +255,28 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
                 }
             }
             
-            // If we can't turn yet, revert but keep the next direction queued
             if (!canTurn) {
                 pacman.x = originalX;
                 pacman.y = originalY;
                 pacman.direction = originalDirection;
                 pacman.updateVelocity();
             } else {
-                // We successfully turned, so update the image and clear the queued direction
                 updatePacmanImage();
-                nextDirection = ' '; // Clear the queued direction
-                return; // We've already moved, so return
+                nextDirection = ' '; 
+                return;
             }
         }
         
-        // Continue moving in current direction
         pacman.x += pacman.velocityX;
         pacman.y += pacman.velocityY;
 
+        //teleport if out of bounds
+        if (pacman.x < 0) {
+            pacman.x = boardWidth - pacman.width; // Teleport to the rightmost side
+        } else if (pacman.x + pacman.width > boardWidth) {
+            pacman.x = 0; // Teleport to the leftmost side
+        }
+    
         //check wall collisions
         for (Block wall : walls) {
             if (collision(pacman, wall)) {
@@ -297,6 +300,12 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             if (ghost.y == tileSize*9 && ghost.direction != 'U' && ghost.direction != 'D') {
                 ghost.updateDirection('U');
             }
+            //ghost getting stuck on same line cause they stupid
+            // if (ghost.x < 0) {
+            //     ghost.x = boardWidth - ghost.width; // Teleport to the rightmost side
+            // } else if (ghost.x + ghost.width > boardWidth) {
+            //     ghost.x = 0; // Teleport to the leftmost side
+            // }
             ghost.x += ghost.velocityX;
             ghost.y += ghost.velocityY;
             for (Block wall : walls) {
@@ -400,6 +409,5 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             gameOver = false;
             gameLoop.start();
         }
-        // Direction changes are now handled in keyPressed
     }
 }
