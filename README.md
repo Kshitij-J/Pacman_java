@@ -1,2 +1,2 @@
-# pokemon_java
-Java project to create a pokemon game
+# pacman_java
+Project to create pacman in java 
