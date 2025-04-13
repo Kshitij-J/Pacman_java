@@ -1,3 +1,4 @@
+package game;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.HashSet;
@@ -128,23 +129,23 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     int lives = 3;
     boolean gameOver = false;
 
-    PacMan() {
+    public PacMan() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
         setBackground(Color.BLACK);
         addKeyListener(this);
         setFocusable(true);
 
         //load images
-        wallImage = new ImageIcon(getClass().getResource("resources/wall.png")).getImage();
-        blueGhostImage = new ImageIcon(getClass().getResource("resources/blueGhost.png")).getImage();
-        orangeGhostImage = new ImageIcon(getClass().getResource("resources/orangeGhost.png")).getImage();
-        pinkGhostImage = new ImageIcon(getClass().getResource("resources/pinkGhost.png")).getImage();
-        redGhostImage = new ImageIcon(getClass().getResource("resources/redGhost.png")).getImage();
+        wallImage = new ImageIcon(getClass().getResource("../resources/wall.png")).getImage();
+        blueGhostImage = new ImageIcon(getClass().getResource("../resources/blueGhost.png")).getImage();
+        orangeGhostImage = new ImageIcon(getClass().getResource("../resources/orangeGhost.png")).getImage();
+        pinkGhostImage = new ImageIcon(getClass().getResource("../resources/pinkGhost.png")).getImage();
+        redGhostImage = new ImageIcon(getClass().getResource("../resources/redGhost.png")).getImage();
 
-        pacmanUpImage = new ImageIcon(getClass().getResource("resources/pacmanUp.png")).getImage();
-        pacmanDownImage = new ImageIcon(getClass().getResource("resources/pacmanDown.png")).getImage();
-        pacmanLeftImage = new ImageIcon(getClass().getResource("resources/pacmanLeft.png")).getImage();
-        pacmanRightImage = new ImageIcon(getClass().getResource("resources/pacmanRight.png")).getImage();
+        pacmanUpImage = new ImageIcon(getClass().getResource("../resources/pacmanUp.png")).getImage();
+        pacmanDownImage = new ImageIcon(getClass().getResource("../resources/pacmanDown.png")).getImage();
+        pacmanLeftImage = new ImageIcon(getClass().getResource("../resources/pacmanLeft.png")).getImage();
+        pacmanRightImage = new ImageIcon(getClass().getResource("../resources/pacmanRight.png")).getImage();
 
         loadMap();
         for (Block ghost : ghosts) {
