@@ -12,12 +12,12 @@ public class Main {
 
         JFrame frame = new JFrame("PacMan(real)"); // making frame
         frame.setVisible(true); // visible by default
-        frame.setSize(boardWidth, boardHeight); // set size of the frame
+        frame.setSize(boardWidth, boardHeight); 
         frame.setLocationRelativeTo(null); //center of screen
-        frame.setResizable(false); // not resizable
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // close on exit
+        frame.setResizable(false); 
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
 
-        PacMan pacmanGame = new PacMan(); // create an instance of the PacMan class
+        PacMan pacmanGame = new PacMan(); 
         frame.add(pacmanGame); // add the PacMan instance to the frame
         frame.pack(); // pack the frame to fit the components
         pacmanGame.requestFocus(); // request focus for the PacMan instance to receive key events
